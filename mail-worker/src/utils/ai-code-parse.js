@@ -1,4 +1,4 @@
-const CODE_RE = /^[A-Za-z0-9]{4,8}$/;
+const CODE_RE = /^(?=.*\d)[A-Za-z0-9]{4,8}$/;
 
 function normalizeCode(value) {
 	if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
@@ -92,6 +92,13 @@ export function extractCodeFromText(text) {
 	if (!text) {
 		return '';
 	}
-	const match = String(text).match(PHRASE_RE);
-	return match ? normalizeCode(match[1]) : '';
+	const globalRe = new RegExp(PHRASE_RE.source, 'gi');
+	let match;
+	while ((match = globalRe.exec(String(text)))) {
+		const code = normalizeCode(match[1]);
+		if (code) {
+			return code;
+		}
+	}
+	return '';
 }
