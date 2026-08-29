@@ -32,7 +32,11 @@ describe('parseAiResult', () => {
 	});
 
 	it('rejects codes that contain spaces', () => {
-		assert.equal(parseAiResult({ code: '73 9284' }), '');
+		assert.equal(parseAiResult('{"code":"12 3456"}'), '');
+	});
+
+	it('rejects all-letter words like Hello', () => {
+		assert.equal(parseAiResult({ response: '{"code":"Hello"}' }), '');
 	});
 });
 
@@ -50,5 +54,12 @@ describe('extractCodeFromText', () => {
 
 	it('returns empty when there is no verification phrasing', () => {
 		assert.equal(extractCodeFromText('Invoice 20260829 amount 123456'), '');
+	});
+
+	it('skips Hello after the subject and takes the numeric code', () => {
+		assert.equal(
+			extractCodeFromText('Your verification code\nHello,\n\nYour verification code is 481627.'),
+			'481627'
+		);
 	});
 });
