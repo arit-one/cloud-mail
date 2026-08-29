@@ -1,4 +1,10 @@
-const CODE_RE = /^(?=.*\d)[A-Za-z0-9]{4,8}$/;
+const TOKEN_RE = /^[A-Za-z0-9]{4,8}$/;
+const TITLE_CASE_RE = /^[A-Z][a-z]+$/;
+const STOPWORDS = new Set([
+	'hello', 'thanks', 'please', 'welcome', 'regards', 'yours',
+	'sincerely', 'dear', 'from', 'this', 'code', 'your', 'with',
+	'have', 'just', 'that', 'what'
+]);
 
 function normalizeCode(value) {
 	if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
@@ -8,7 +14,10 @@ function normalizeCode(value) {
 		return '';
 	}
 	const code = value.trim();
-	if (!CODE_RE.test(code)) {
+	if (!TOKEN_RE.test(code)) {
+		return '';
+	}
+	if (TITLE_CASE_RE.test(code) || STOPWORDS.has(code.toLowerCase())) {
 		return '';
 	}
 	return code;
@@ -86,7 +95,9 @@ export function parseAiResult(result) {
 	return '';
 }
 
-const PHRASE_RE = /(?:verification code|one[-\s]?time (?:code|password|passcode)|security code|otp|验证码|校验码|確認コード)\s*(?:is|[:：]|为|為)?\s*([A-Za-z0-9]{4,8})\b/i;
+// 不跨行：避免 "Your verification code\nHello" 把问候语当成码。
+// 短语放长的在前。简体/英文/短信转发都能命中。
+const PHRASE_RE = /(?:\b(?:(?:sms\s+)?verification code|one[-\s]?time (?:code|password|passcode)|security code|auth code|login code|otp(?:\s*code)?|passcode|pin code)\b|短信验证码|短信碼|短信码|动态密码|動態密碼|验证码|校验码|确认码|確認碼|驗證碼|確認コード)[ \t]*(?:is|code|为|為|是)?[ \t]*[:：=]?[ \t]*([A-Za-z0-9]{4,8})\b/i;
 
 export function extractCodeFromText(text) {
 	if (!text) {
